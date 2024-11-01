@@ -1,0 +1,16 @@
+[package]
+name = "TUI-test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+color-eyre = "0.6.3"
+crossterm = "0.28.1"
+ratatui = { version = "0.28.1", features = ["termion"] }
+rspotify = "0.13.3"
+termion = "4.0.3"
+time = "0.3.36"
+tui = "0.19.0"
+log = "0.4"
+env_logger = "0.10"
+chrono = "0.4.38"
