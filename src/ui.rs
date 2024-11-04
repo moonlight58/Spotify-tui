@@ -6,9 +6,8 @@ use ratatui::{
     widgets::{Block, Borders, Clear, Paragraph},
     Frame,
 };
-use ratatui::backend::Backend;
 
-pub fn draw<B: Backend>(frame: &mut Frame, app: &mut App) {
+pub fn draw (frame: &mut Frame, app: &mut App) {
     let chunk = Layout::default()
         .direction(Direction::Vertical)
         .constraints(
@@ -44,7 +43,6 @@ pub fn draw<B: Backend>(frame: &mut Frame, app: &mut App) {
     draw_playlist(frame, app, music_area_chunks[1]);
     draw_player(frame, app, chunk[2]);
 
-    // Ajoutez cet appel
     draw_popup(frame, app);
 }
 
@@ -112,30 +110,31 @@ fn draw_player(frame: &mut Frame, app: &App, bottom_area: Rect) {
     frame.render_widget(player_section, bottom_area);
 }
 
+fn draw_popup(frame: &mut Frame, app: &App) {
+    if app.show_popup {
+        let area = frame.size();
+        let popup_width = (area.width * 50) / 100;  // 80% of total width
+        let popup_height = (area.height * 95) / 100; // 90% of total height
+        let popup_area = Rect::new(
+            (area.width - popup_width) / 2,  // centered horizontally
+            (area.height - popup_height) / 2, // centered vertically
+            popup_width,
+            popup_height,
+        );
+
+        let popup_block = Block::default()
+            .borders(Borders::ALL)
+            .title("Help Popup");
+
+        frame.render_widget(Clear, popup_area); // This clears out the background
+        frame.render_widget(popup_block, popup_area);
+    }
+}
+
 fn active_style(active: bool) -> Style {
     if active {
         Style::default().fg(Color::Cyan)
     } else {
         Style::default()
-    }
-}
-
-fn draw_popup<B: Backend>(frame: &mut Frame, app: &App) {
-    if app.show_popup {
-        let size = frame.size();
-        let popup_layout = Rect {
-            x: (size.width - size.width * 60 / 100) / 2,
-            y: (size.height - size.height * 80 / 100) / 2,
-            width: size.width * 60 / 100,
-            height: size.height * 80 / 100,
-        };
-
-        let popup_block = Block::default()
-            .title("Popup")
-            .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::Red));
-
-        frame.render_widget(Clear::default(), popup_layout);  // Cette ligne permet de rendre la popup sur une zone vide
-        frame.render_widget(popup_block, popup_layout);
     }
 }
