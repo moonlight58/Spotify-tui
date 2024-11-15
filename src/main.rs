@@ -18,25 +18,6 @@ use chrono::Local;
 fn main() -> Result<()> {
     // Install color_eyre for error handling
     color_eyre::install()?;
-    // Créez ou ouvrez le fichier de log
-    let log_file = File::create("app.log").unwrap();
-    let log_file = Arc::new(Mutex::new(log_file));
-
-    // Initialisez env_logger
-    env_logger::Builder::from_env(Env::default().default_filter_or("info"))
-        .format(move |buf, record| {
-            let mut file = log_file.lock().unwrap();
-            let formatted = format!(
-                "{} [{}] - {}\n",
-                Local::now().format("%Y-%m-%d %H:%M:%S"),
-                record.level(),
-                record.args()
-            );
-            writeln!(buf, "{}", formatted)?;
-            writeln!(file, "{}", formatted)?;
-            Ok(())
-        })
-        .init();
 
     // Initialize terminal and enable raw mode
     terminal::enable_raw_mode().wrap_err("Failed to enter raw mode")?;
@@ -70,6 +51,10 @@ fn main() -> Result<()> {
     terminal.clear()?;
     terminal::disable_raw_mode()?;
     terminal.show_cursor()?;
-    std::process::Command::new("clear").status()?;
+    if cfg!(windows) {
+        std::process::Command::new("cls").status()?;
+    } else if cfg!(unix) {
+        std::process::Command::new("clear").status()?;
+    }
     Ok(())
 }

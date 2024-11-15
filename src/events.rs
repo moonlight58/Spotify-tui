@@ -1,14 +1,11 @@
 use crossterm::event::{KeyCode, KeyEvent};
-use log::info;
 use crate::app::App;
 
 
 pub fn handle_key_events(app: &mut App, key_event: KeyEvent) {
     match key_event.code {
         KeyCode::Char('q') => app.should_exit = true,
-        KeyCode::Char('h') => {
-            app.show_popup = !app.show_popup;
-        },
+        KeyCode::Char('h') => app.show_popup = !app.show_popup,
         KeyCode::Up => {
             if app.cursor_y > 0 {
                 if app.cursor_x == 1 && app.cursor_y == 3 {
