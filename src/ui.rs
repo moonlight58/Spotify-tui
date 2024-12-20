@@ -121,10 +121,10 @@ fn draw_popup(frame: &mut Frame, app: &App) {
     if app.show_popup {
         let area = frame.size();
         let popup_width = 50;
-        let popup_height = (area.height * 90) / 100; // 90% de la hauteur totale
+        let popup_height = (area.height * 90) / 100;
         let popup_area = Rect::new(
-            (area.width - popup_width) / 2,   // centré horizontalement
-            (area.height - popup_height) / 2, // centré verticalement
+            (area.width - popup_width) / 2,
+            (area.height - popup_height) / 2,
             popup_width,
             popup_height,
         );
@@ -132,40 +132,36 @@ fn draw_popup(frame: &mut Frame, app: &App) {
 
         let command_help_text = vec![
             Line::from(vec![
-                Span::styled("Commands List", Style::default().add_modifier(Modifier::BOLD)),
-            ]),
-            Line::from(""),
-            Line::from(vec![
-                Span::styled("q", Style::default().fg(Color::Yellow)),
-                Span::styled(" - Quit the application", Style::default().fg(Color::Green)),
+                Span::styled("q", Style::default().fg(Color::LightYellow)),
+                Span::styled(" - Quit the application", Style::default().fg(Color::LightGreen)),
             ]),
             Line::from(vec![
-                Span::styled("h", Style::default().fg(Color::Yellow)),
-                Span::styled(" - Toggle this help popup", Style::default().fg(Color::Green)),
+                Span::styled("h", Style::default().fg(Color::LightYellow)),
+                Span::styled(" - Activate/Deactivate this help popup", Style::default().fg(Color::LightGreen)),
             ]),
             Line::from(vec![
-                Span::styled("Up/Down", Style::default().fg(Color::Yellow)),
-                Span::styled(" - Navigate between sections", Style::default().fg(Color::Green)),
+                Span::styled("Up/Down/Left/Right", Style::default().fg(Color::LightYellow)),
+                Span::styled(" - Navigate between sections", Style::default().fg(Color::LightGreen)),
             ]),
             Line::from(vec![
-                Span::styled("Enter", Style::default().fg(Color::Yellow)),
-                Span::styled(" - Select an item", Style::default().fg(Color::Green)),
+                Span::styled("Enter", Style::default().fg(Color::LightYellow)),
+                Span::styled(" - Select an item", Style::default().fg(Color::LightGreen)),
             ]),
         ];
 
         let command_help = Paragraph::new(command_help_text)
-            .block(Block::default().title("Commands").borders(Borders::ALL)
-                       .border_style(Style::default().fg(Color::Green)))
+            .block(Block::default().title("Help Popup").borders(Borders::ALL)
+                       .border_style(Style::default().fg(Color::LightGreen)))
             .style(Style::default().fg(Color::White));
 
 
-        frame.render_widget(Clear, popup_area); // Efface l'arrière-plan
+        frame.render_widget(Clear, popup_area);
         frame.render_widget(command_help, popup_area);
     }
 }
 
 
 fn active_style(active: bool) -> Style {
-    if active { Style::default().fg(Color::Cyan) }
+    if active { Style::default().fg(Color::LightGreen) }
     else { Style::default() }
 }

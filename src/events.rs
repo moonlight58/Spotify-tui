@@ -1,9 +1,23 @@
 use crossterm::event::{KeyCode, KeyEvent};
 use crate::app::App;
+use crate::oauth::{get_credentials, reload_credentials};
+use tokio::spawn;
 
-
-pub fn handle_key_events(app: &mut App, key_event: KeyEvent) {
+#[tokio::main]
+pub async fn handle_key_events(app: &mut App, key_event: KeyEvent) {
     match key_event.code {
+        KeyCode::Char('c') => {
+            let (client_id, client_secret) = get_credentials();
+            println!("Client ID: {}", client_id);
+            println!("Client Secret: {}", client_secret);
+        },
+        KeyCode::Char('r') => {
+            spawn(async {
+                if let Err(e) = reload_credentials().await {
+                    eprintln!("Error reloading credentials: {}", e);
+                }
+            });
+        },
         KeyCode::Char('q') => app.should_exit = true,
         KeyCode::Char('h') => app.show_popup = !app.show_popup,
         KeyCode::Up => {

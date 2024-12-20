@@ -1,6 +1,8 @@
 mod app;
 mod ui;
 mod events;
+mod music;
+mod oauth;
 
 use std::fs::File;
 use color_eyre::Result;
@@ -9,15 +11,16 @@ use std::time::{Duration, Instant};
 use std::io::{self};
 use std::sync::{Arc, Mutex};
 use color_eyre::eyre::WrapErr;
-use env_logger::Env;
+use dotenv::dotenv;
 use ratatui::{backend::CrosstermBackend, Terminal};
-
 use std::io::Write;
 use chrono::Local;
 
 fn main() -> Result<()> {
     // Install color_eyre for error handling
     color_eyre::install()?;
+
+    dotenv().ok();
 
     // Initialize terminal and enable raw mode
     terminal::enable_raw_mode().wrap_err("Failed to enter raw mode")?;
