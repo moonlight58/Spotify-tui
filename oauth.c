@@ -9,19 +9,7 @@
 #include <ctype.h>
 #include <curl/curl.h>
 
-/**
- * @brief Structure to hold a dynamically growing string.
- * 
- * This structure is used to store data received from the Spotify API.
- * It contains a pointer to the string data and its current length.
- * The string is dynamically allocated and can grow as needed.
- * The string is null-terminated to facilitate string operations.
- */
-struct string
-{
-    char *ptr;
-    size_t len;
-};
+#include "utils.h"
 
 /**
  * @brief Structure to hold the token response data.
@@ -40,55 +28,11 @@ struct TokenResponse
 };
 
 /**
- * @brief Initialize a string structure for dynamic memory allocation.
- *
- * This function initializes a string structure by allocating memory for it.
- * The initial length is set to 0, and the pointer is allocated with 1 byte
- * to accommodate the null terminator.
- *
- * @param s Pointer to the string structure to be initialized.
- */
-void init_string(struct string *s)
-{
-    s->len = 0;
-    s->ptr = malloc(1);
-    if (s->ptr)
-        s->ptr[0] = '\0';
-};
-
-/**
- * @brief Callback function for libcurl to write received data into a dynamic buffer.
- *
- * This function is used by libcurl's CURLOPT_WRITEFUNCTION option.
- * It appends the received data chunk to a dynamically growing buffer
- * (struct string), ensuring the buffer is always null-terminated.
- *
- * @param ptr Pointer to the received data.
- * @param size Size of each data element.
- * @param nmemb Number of data elements.
- * @param s Pointer to a struct string where the data will be appended.
- * @return The number of bytes actually handled (size * nmemb).
- */
-size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s)
-{
-    size_t new_len = s->len + size * nmemb; // Calculate new total length
-    s->ptr = realloc(s->ptr, new_len + 1);  // Reallocate buffer (+1 for null terminator)
-    if (s->ptr)
-    {
-        // Copy new data to the end of the buffer
-        memcpy(s->ptr + s->len, ptr, size * nmemb);
-        s->ptr[new_len] = '\0'; // Null-terminate the buffer
-        s->len = new_len;       // Update the length
-    }
-    return size * nmemb; // Return the number of bytes handled
-};
-
-/**
  * @brief Helper function to extract string value from JSON.
- * 
+ *
  * This function searches for a key in the JSON string and extracts its value.
  * It assumes the JSON format is valid and the key exists.
- * 
+ *
  * @param json The JSON string to search.
  * @param key The key to search for in the JSON string.
  * @param output The buffer to store the extracted value.
@@ -128,10 +72,10 @@ char *extract_json_string(const char *json, const char *key, char *output, size_
 
 /**
  * @brief Helper function to extract integer value from JSON.
- * 
+ *
  * This function searches for a key in the JSON string and extracts its integer value.
  * It assumes the JSON format is valid and the key exists.
- * 
+ *
  * @param json The JSON string to search.
  * @param key The key to search for in the JSON string.
  * @return The integer value associated with the key, or -1 if not found.
@@ -264,6 +208,7 @@ int RequestAccessToken(const char *code, const char *code_verifier)
 
         // Store tokens in environment variables
         setenv("ACCESS_TOKEN", token_data.access_token, 1);
+        setenv("SCOPE", token_data.scope, 1);
         setenv("REFRESH_TOKEN", token_data.refresh_token, 1);
         setenv("TOKEN_TYPE", token_data.token_type, 1);
 
@@ -271,6 +216,8 @@ int RequestAccessToken(const char *code, const char *code_verifier)
         char expires_str[32];
         snprintf(expires_str, sizeof(expires_str), "%d", token_data.expires_in);
         setenv("TOKEN_EXPIRES_IN", expires_str, 1);
+
+        // printf("Env var:\nACCESS_TOKEN: %s\nSCOPE: %s\nREFRESH_TOKEN: %s\nTOKEN_TYPE: %s\n", getenv("ACCESS_TOKEN"), getenv("SCOPE"), getenv("REFRESH_TOKEN"), getenv("TOKEN_TYPE"));
     }
     else
     {
@@ -289,10 +236,10 @@ int RequestAccessToken(const char *code, const char *code_verifier)
 
 /**
  * @brief Load environment variables from a .env file.
- * 
+ *
  * This function reads a .env file and sets the environment variables
  * accordingly. It ignores comments and empty lines.
- * 
+ *
  * @param filename The name of the .env file to load.
  */
 void loadEnv(const char *filename)
@@ -326,10 +273,10 @@ void loadEnv(const char *filename)
 
 /**
  * @brief Encode data to Base64 URL format.
- * 
+ *
  * This function encodes binary data to Base64 URL format, replacing
  * '+' with '-', '/' with '_', and removing '=' padding.
- * 
+ *
  * @param input Pointer to the input data.
  * @param len Length of the input data.
  * @param output Pointer to the output buffer (must be large enough).
@@ -354,11 +301,11 @@ void base64_url_encode(const unsigned char *input, int len, char *output, int ou
 
 /**
  * @brief Generate a code challenge from the code verifier.
- * 
+ *
  * This function computes the SHA-256 hash of the code verifier
  * and encodes it to Base64 URL format. The result is stored in
  * the provided output buffer.
- * 
+ *
  * @param code_verifier The code verifier string.
  * @param code_challenge The output buffer for the code challenge.
  * @param max_len The maximum length of the output buffer.
@@ -377,10 +324,10 @@ void generate_code_challenge(const char *code_verifier, char *code_challenge, in
 
 /**
  * @brief Generate a random string of specified length.
- * 
+ *
  * This function generates a random alphanumeric string of the specified length.
  * The string is dynamically allocated and must be freed by the caller.
- * 
+ *
  * @param length The length of the random string to generate.
  * @return Pointer to the generated string, or NULL on failure.
  */
@@ -402,11 +349,11 @@ char *generateRandomString(int length)
 
 /**
  * @brief Wait for the authorization code and request an access token.
- * 
+ *
  * This function sets up a local server to listen for the redirect
  * from the Spotify authorization server. It captures the authorization
  * code and calls RequestAccessToken to exchange it for an access token.
- * 
+ *
  * @param code_verifier The code verifier used in the PKCE flow.
  */
 void wait_for_code_and_request_token(const char *code_verifier)
@@ -487,7 +434,7 @@ void wait_for_code_and_request_token(const char *code_verifier)
 
 /**
  * @brief Request user authorization for Spotify API.
- * 
+ *
  * This function generates a random code verifier, constructs the
  * authorization URL, and opens it in the default web browser.
  * It waits for the redirect with the authorization code and
@@ -495,9 +442,6 @@ void wait_for_code_and_request_token(const char *code_verifier)
  */
 char RequestUserAuth()
 {
-    // Load environment variables from .env file
-    loadEnv(".env");
-
     const char *client_id = getenv("CLIENT_ID");
     // printf("Client ID: %s\n", client_id);
     const char *redirect_uri = getenv("REDIRECT_URI");

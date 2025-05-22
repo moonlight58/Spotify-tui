@@ -3,10 +3,14 @@
 #include <string.h>
 
 #include "oauth.h"
+#include "utils.h"
 
-int main() {    
+int main()
+{
     // Test RequestUserAuth
+    loadEnv(".env");
     RequestUserAuth();
-    
+    getProfile(getenv("ACCESS_TOKEN"));
+
     return 0;
 }
