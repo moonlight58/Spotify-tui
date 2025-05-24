@@ -1,6 +1,7 @@
 #ifndef REQUEST_H
 #define REQUEST_H
 
-void getProfile(const char *access_token);
+char *getProfile(const char *access_token);
+char *getPlaylists(const char *access_token);
 
 #endif

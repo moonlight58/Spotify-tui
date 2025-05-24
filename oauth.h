@@ -2,6 +2,7 @@
 #define OAUTH_H
 
 int RequestUserAuth();
+int RefreshAccessToken();
 int RequestAccessToken(const char *code, const char *code_verifier);
 
 void generate_code_challenge(const char *code_verifier, char *code_challenge, int max_len);
