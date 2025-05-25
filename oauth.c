@@ -136,7 +136,6 @@ int RequestAccessToken(const char *code, const char *code_verifier)
 
         // Store tokens in environment variables
         setenv("ACCESS_TOKEN", token_data.access_token, 1);
-        setenv("SCOPE", token_data.scope, 1);
         setenv("REFRESH_TOKEN", token_data.refresh_token, 1);
         setenv("TOKEN_TYPE", token_data.token_type, 1);
 
@@ -255,7 +254,7 @@ char RequestUserAuth()
     // printf("Client ID: %s\n", client_id);
     const char *redirect_uri = getenv("REDIRECT_URI");
     // printf("Redirect URI: %s\n", redirect_uri);
-    const char *scope = "user-read-private user-read-email";
+    const char *scope = "user-read-private user-read-email user-library-read";
 
     char *code_verifier = generateRandomString(64);
 

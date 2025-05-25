@@ -19,7 +19,7 @@
  *      explicit_content filters, 
  *      followers, 
  *      id, 
-        api url to the account.
+ *      api url to the account.
  */
 char *getProfile(const char *access_token) {
     CURL *curl = curl_easy_init();
@@ -91,6 +91,80 @@ char *getPlaylists(const char *access_token) {
     curl_easy_cleanup(curl);
 }
 
+/**
+ * @brief Get items from a specific playlist.
+ * 
+ * This function retrieves the items from a specified playlist using the Spotify API.
+ * 
+ * @param access_token The access token for authorization.
+ * @param playlist_id The ID of the playlist to retrieve items from.
+ * @return A JSON string containing the items in the playlist.
+ */
 char *getPlaylistItems(const char *access_token, const char *playlist_id) {
-    return "";
+    CURL *curl = curl_easy_init();
+    if (!curl) {
+        fprintf(stderr, "curl init failed\n");
+        return "";
+    }
+    struct string response;
+    init_string(&response);
+    // Prepare the Authorization header
+    char auth_header[512];
+    snprintf(auth_header, sizeof(auth_header), "Authorization Bearer %s", access_token);
+
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, auth_header);
+
+    char url[256];
+    snprintf(url, sizeof(url), "https://api.spotify.com/v1/playlists/%s/tracks", playlist_id);
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+
+    CURLcode res = curl_easy_perform(curl);
+    if (res != CURLE_OK) {
+        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    } else {
+        parse_JSON(response.ptr);
+        return response.ptr;
+    }
+    free(response.ptr);
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+}
+
+char *getLikedSong(const char *access_token) {
+    CURL *curl = curl_easy_init();
+    if (!curl) {
+        fprintf(stderr, "curl init failed\n");
+        return "";
+    }
+
+    struct string response;
+    init_string(&response);
+
+    // Prepare the Authorization header
+    char auth_header[512];
+    snprintf(auth_header, sizeof(auth_header), "Authorization: Bearer %s", access_token);
+
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, auth_header);
+
+    curl_easy_setopt(curl, CURLOPT_URL, "https://api.spotify.com/v1/me/tracks");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    
+    CURLcode res = curl_easy_perform(curl);
+    if (res != CURLE_OK) {
+        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    } else {
+        parse_JSON(response.ptr);
+        return response.ptr;
+    }
+
+    free(response.ptr);
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
 }
