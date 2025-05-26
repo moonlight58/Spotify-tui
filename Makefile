@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -g
 LDFLAGS = -lcurl -lncurses -lcjson -lssl -lcrypto
 
-SRC = main.c utils.c oauth.c request.c
+SRC = $(wildcard *.c)
 OBJ = $(SRC:.c=.o)
 TARGET = main
 
