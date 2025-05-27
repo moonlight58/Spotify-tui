@@ -1,0 +1,21 @@
+
+    _________  ____  / /_(_) __/_  __      / /___  __(_)
+   / ___/ __ \/ __ \/ __/ / /_/ / / /_____/ __/ / / / /
+  (__  ) /_/ / /_/ / /_/ / __/ /_/ /_____/ /_/ /_/ / /
+ /____/ .___/\____/\__/_/_/  \__. /      \__/\__._/_/
+     /_/                    /____/
+
+# Welcome to spotify-tui
+
+Created by moonlight58  
+GitHub: https://github.com/moonlight58
+
+Inspired by [Rigellute's spotify-tui](https://github.com/Rigellute/spotify-tui/tree/master) - check out their amazing work!
+
+This project is written in C from scratch.  
+It uses the ncurses library for the Text User Interface and Spotify’s Web API for all requests.
+
+**Note:**  
+Unfortunately to play songs, you need a Spotify Premium account.  
+See: https://developer.spotify.com/documentation/web-api/reference/start-a-users-playback  
+"This API only works for users who have Spotify Premium."

@@ -6,6 +6,7 @@
 int main()
 {
     initscr();
+    keypad(stdscr, TRUE); // Enable function keys and arrow keys
     noecho();
     cbreak();
     curs_set(0);
@@ -36,7 +37,10 @@ int main()
     wrefresh(main_win);
     wrefresh(progress_bar);
 
-    handle_events(search_bar, help_bar);
+    // Render welcome message
+    render_welcome(main_win);
+
+    handle_events(&search_bar, &help_bar, &library_win, &playlist_win, &main_win, &progress_bar);
 
     delwin(search_bar);
     delwin(help_bar);

@@ -54,3 +54,22 @@ WINDOW* create_window_with_layout(WindowLayout layout, int color_pair, const cha
     }
     return win;
 }
+
+void render_welcome(WINDOW *main_win) {
+    FILE *file = fopen("welcome.txt", "r");
+    if (!file) {
+        mvwprintw(main_win, 1, 1, "Welcome file not found.");
+        wrefresh(main_win);
+        return;
+    }
+    char line[256];
+    int row = 1;
+    while (fgets(line, sizeof(line), file)) {
+        // Remove trailing newline for cleaner output
+        size_t len = strlen(line);
+        if (len > 0 && line[len-1] == '\n') line[len-1] = '\0';
+        mvwprintw(main_win, row++, 1, "%s", line);
+    }
+    fclose(file);
+    wrefresh(main_win);
+}
