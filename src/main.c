@@ -1,10 +1,25 @@
 #include <ncurses.h>
+#include <stdlib.h>
 
 #include "tui.h"
 #include "event.h"
+#include "request.h"
+#include "oauth.h"
+
+const char *library_items[] = {
+    "Made For You",
+    "Recently Played",
+    "Liked Songs",
+    "Albums",
+    "Artists",
+    "Podcasts"
+};
 
 int main()
 {
+    load_env(".env");
+    connect_user_auth();
+
     initscr();
     keypad(stdscr, TRUE); // Enable function keys and arrow keys
     noecho();
@@ -39,6 +54,15 @@ int main()
 
     // Render welcome message
     render_welcome(main_win);
+
+    // Render the library items in the library window
+    int library_count = sizeof(library_items) / sizeof(library_items[0]);
+    render_library(library_win, library_items, library_count);
+
+    // Now, get playlists after authentication and environment setup
+    const char *access_token = getenv("ACCESS_TOKEN");
+    char *playlists_json = get_user_playlists(access_token);
+    // TODO: Parse playlists_json and render in playlist_win
 
     handle_events(&search_bar, &help_bar, &library_win, &playlist_win, &main_win, &progress_bar);
 

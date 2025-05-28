@@ -41,14 +41,11 @@ void handle_events(WINDOW **search_bar, WINDOW **help_bar,
             wrefresh(*library_win);
             wrefresh(*playlist_win);
             wrefresh(*main_win);
-            wrefresh(*progress_bar);
-
-            // Render Welcome Message
-            render_welcome(*main_win);
+            wrefresh(*progress_bar);;
 
             break;
         case '?':
-            mvwprintw(*help_bar, 1, 1, "Help: Press q to exit");
+            // Open help window with the entire list of commands
             wrefresh(*help_bar);
             break;
         case 's':

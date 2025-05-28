@@ -79,7 +79,7 @@ int parse_token_response(const char *json_response, struct TokenResponse *token_
  * @param code_verifier The code verifier used in the PKCE flow.
  * @return 0 on success, non-zero on failure.
  */
-int RequestAccessToken(const char *code, const char *code_verifier)
+int request_access_token(const char *code, const char *code_verifier)
 {
     const char *client_id = getenv("CLIENT_ID");
     const char *redirect_uri = getenv("REDIRECT_URI");
@@ -162,6 +162,33 @@ int RequestAccessToken(const char *code, const char *code_verifier)
 }
 
 /**
+ * @brief Wait for the authorization code from the redirect.
+ *
+ * This function sets up a simple HTTP server to listen for the redirect
+ * containing the authorization code. It extracts the code from the request
+ * and calls request_access_token to exchange it for an access token.
+ *
+ */
+void check_and_refresh_token() {
+    const char *access_token = getenv("ACCESS_TOKEN");
+    const char *expires_in_str = getenv("TOKEN_EXPIRES_IN");
+    if (!access_token || !expires_in_str) {
+        fprintf(stderr, "Access token or expiration time not set.\n");
+        return;
+    }
+    int expires_in = atoi(expires_in_str);
+    if (expires_in <= 0) {
+        fprintf(stderr, "Access token has expired or is invalid.\n");
+        if (refresh_access_token() != 0) {
+            fprintf(stderr, "Failed to refresh access token.\n");
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        printf("Access token is still valid for %d seconds.\n", expires_in);
+    }
+}
+
+/**
  * @brief Refresh the Spotify access token using the refresh token.
  *
  * This function sends a POST request to the Spotify API to obtain a new access token
@@ -170,18 +197,20 @@ int RequestAccessToken(const char *code, const char *code_verifier)
  *
  * @return 0 on success, non-zero on failure.
  */
-int RefreshAccessToken()
+int refresh_access_token()
 {
     const char *client_id = getenv("CLIENT_ID");
     const char *refresh_token = getenv("REFRESH_TOKEN");
 
-    if (!client_id || !refresh_token) {
+    if (!client_id || !refresh_token)
+    {
         fprintf(stderr, "Missing CLIENT_ID or REFRESH_TOKEN\n");
         return 1;
     }
 
     CURL *curl = curl_easy_init();
-    if (!curl) {
+    if (!curl)
+    {
         fprintf(stderr, "Failed to init curl\n");
         return 1;
     }
@@ -191,10 +220,10 @@ int RefreshAccessToken()
 
     char postfields[1024];
     snprintf(postfields, sizeof(postfields),
-        "grant_type=refresh_token"
-        "&refresh_token=%s"
-        "&client_id=%s",
-        refresh_token, client_id);
+             "grant_type=refresh_token"
+             "&refresh_token=%s"
+             "&client_id=%s",
+             refresh_token, client_id);
 
     struct string response;
     init_string(&response);
@@ -206,7 +235,8 @@ int RefreshAccessToken()
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
 
     CURLcode res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
+    if (res != CURLE_OK)
+    {
         fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
         free(response.ptr);
         curl_slist_free_all(headers);
@@ -216,7 +246,8 @@ int RefreshAccessToken()
 
     // Parse and update tokens
     struct TokenResponse token_data;
-    if (parse_token_response(response.ptr, &token_data) == 0) {
+    if (parse_token_response(response.ptr, &token_data) == 0)
+    {
         setenv("ACCESS_TOKEN", token_data.access_token, 1);
         if (strlen(token_data.refresh_token) > 0)
             setenv("REFRESH_TOKEN", token_data.refresh_token, 1);
@@ -225,7 +256,9 @@ int RefreshAccessToken()
         char expires_str[32];
         snprintf(expires_str, sizeof(expires_str), "%d", token_data.expires_in);
         setenv("TOKEN_EXPIRES_IN", expires_str, 1);
-    } else {
+    }
+    else
+    {
         fprintf(stderr, "Failed to parse refresh token response\n");
         free(response.ptr);
         curl_slist_free_all(headers);
@@ -239,7 +272,6 @@ int RefreshAccessToken()
     return 0;
 }
 
-
 /**
  * @brief Request user authorization for Spotify API.
  *
@@ -248,15 +280,16 @@ int RefreshAccessToken()
  * It waits for the redirect with the authorization code and
  * requests an access token using that code.
  */
-char RequestUserAuth()
+char request_user_auth()
 {
     const char *client_id = getenv("CLIENT_ID");
     // printf("Client ID: %s\n", client_id);
     const char *redirect_uri = getenv("REDIRECT_URI");
     // printf("Redirect URI: %s\n", redirect_uri);
-    const char *scope = "user-read-private user-read-email user-library-read";
+    const char *scope = getenv("SCOPE");
+    
 
-    char *code_verifier = generateRandomString(64);
+    char *code_verifier = generate_random_string(64);
 
     char code_challenge[128];
     generate_code_challenge(code_verifier, code_challenge, sizeof(code_challenge));
@@ -283,4 +316,34 @@ char RequestUserAuth()
     wait_for_code_and_request_token(code_verifier);
 
     free(code_verifier);
+}
+
+void connect_user_auth()
+{
+    const char *access_token = getenv("ACCESS_TOKEN");
+    const char *refresh_token = getenv("REFRESH_TOKEN");
+    if (access_token && access_token[0] != '\0' &&
+        refresh_token && refresh_token[0] != '\0')
+    {
+        printf("Access token and refresh token already set.\n");
+        return;
+    }
+    // If not set, request user authorization
+    printf("Requesting user authorization...\n");
+    request_user_auth();
+    if (getenv("ACCESS_TOKEN") && getenv("REFRESH_TOKEN"))
+    {
+        printf("User authorization successful.\n");
+    }
+    else
+    {
+        fprintf(stderr, "Failed to obtain access token and refresh token.\n");
+        exit(EXIT_FAILURE);
+    }
+    // Print the tokens for debugging
+    printf("Access Token: %s\n", getenv("ACCESS_TOKEN"));
+    printf("Refresh Token: %s\n", getenv("REFRESH_TOKEN"));
+    printf("Token Type: %s\n", getenv("TOKEN_TYPE"));
+    printf("Scope: %s\n", getenv("SCOPE"));
+    printf("Token Expires In: %s seconds\n", getenv("TOKEN_EXPIRES_IN"));
 }

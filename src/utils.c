@@ -161,7 +161,7 @@ int extract_json_int(const char *json, const char *key)
  *
  * @param filename The name of the .env file to load.
  */
-void loadEnv(const char *filename)
+void load_env(const char *filename)
 {
     FILE *file = fopen(filename, "r");
     if (file == NULL)
@@ -250,7 +250,7 @@ void generate_code_challenge(const char *code_verifier, char *code_challenge, in
  * @param length The length of the random string to generate.
  * @return Pointer to the generated string, or NULL on failure.
  */
-char *generateRandomString(int length)
+char *generate_random_string(int length)
 {
     const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     char *randomString = malloc(length + 1);
@@ -338,7 +338,7 @@ void wait_for_code_and_request_token(const char *code_verifier)
         write(new_socket, response, strlen(response));
 
         // printf("Captured code: %s\n", code);
-        RequestAccessToken(code, code_verifier);
+        request_access_token(code, code_verifier);
     }
     else
     {

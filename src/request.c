@@ -4,6 +4,7 @@
 #include <curl/curl.h>
 
 #include "utils.h"
+#include "oauth.h"
 
 /**
  * @brief Callback function to handle the response from the server.
@@ -21,7 +22,9 @@
  *      id, 
  *      api url to the account.
  */
-char *getProfile(const char *access_token) {
+char *get_user_profile(const char *access_token) {
+    check_and_refresh_token(); 
+
     CURL *curl = curl_easy_init();
     if (!curl) {
         fprintf(stderr, "curl init failed\n");
@@ -56,7 +59,9 @@ char *getProfile(const char *access_token) {
     curl_easy_cleanup(curl);
 }
 
-char *getPlaylists(const char *access_token) {
+char *get_user_playlists(const char *access_token) {
+    check_and_refresh_token();
+
     CURL *curl = curl_easy_init();
     if (!curl) {
         fprintf(stderr, "curl init failed\n");
@@ -82,7 +87,7 @@ char *getPlaylists(const char *access_token) {
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
     } else {
-        parse_JSON(response.ptr);
+        // parse_JSON(response.ptr);
         return response.ptr;
     }
 
@@ -100,7 +105,9 @@ char *getPlaylists(const char *access_token) {
  * @param playlist_id The ID of the playlist to retrieve items from.
  * @return A JSON string containing the items in the playlist.
  */
-char *getPlaylistItems(const char *access_token, const char *playlist_id) {
+char *get_user_playlist_items(const char *access_token, const char *playlist_id) {
+    check_and_refresh_token();
+
     CURL *curl = curl_easy_init();
     if (!curl) {
         fprintf(stderr, "curl init failed\n");
@@ -134,7 +141,9 @@ char *getPlaylistItems(const char *access_token, const char *playlist_id) {
     curl_easy_cleanup(curl);
 }
 
-char *getLikedSong(const char *access_token) {
+char *get_user_liked_songs(const char *access_token) {
+    check_and_refresh_token();
+
     CURL *curl = curl_easy_init();
     if (!curl) {
         fprintf(stderr, "curl init failed\n");

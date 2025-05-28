@@ -13,9 +13,13 @@ GitHub: https://github.com/moonlight58
 Inspired by [Rigellute's spotify-tui](https://github.com/Rigellute/spotify-tui/tree/master) - check out their amazing work!
 
 This project is written in C from scratch.  
-It uses the ncurses library for the Text User Interface and Spotify’s Web API for all requests.
+It uses the ncurses library for the Text User Interface and Spotify's Web API for all requests.
 
 **Note:**  
 Unfortunately to play songs, you need a Spotify Premium account.  
 See: https://developer.spotify.com/documentation/web-api/reference/start-a-users-playback  
 "This API only works for users who have Spotify Premium."
+
+**Why this app?**
+I've always been fascinated by Text User Interfaces (TUIs). When I discovered Rigellute's spotify-tui, I was excited to try it, but unfortunately, it was no longer maintained and didn't work for me.
+This inspired me to take on a new challenge: building my own Spotify TUI client from scratch in C (because Rust is too complicated for me right now and i'm dumb), fully open source and bug free (hopefully).

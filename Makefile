@@ -7,7 +7,7 @@ OBJ = $(SRC:src/%.c=build/%.o)
 DEP = $(OBJ:.o=.d)
 TARGET ?= main
 
-.PHONY: all clean run
+.PHONY: all clean run reload
 
 all: $(TARGET)
 
@@ -23,5 +23,7 @@ run: $(TARGET)
 
 clean:
 	rm -rf build $(TARGET)
+
+reload: clean run
 
 -include $(DEP)
