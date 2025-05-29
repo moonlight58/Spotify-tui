@@ -6,14 +6,18 @@
 
 #define COLOR_BG 8
 #define COLOR_FG 9
-#define COLOR_FG_ACTIVE 10
+#define COLOR_CUSTOM_SEARCH 10
+#define COLOR_CUSTOM_LIBRARY 11
+#define COLOR_CUSTOM_PLAYLIST 12
+#define COLOR_CUSTOM_MAIN 13
+#define COLOR_CUSTOM_PROGRESS 14
 
 void setup_colors()
 {
     if (!has_colors())
     {
         endwin();
-        fprintf(stderr, "Your terminal does not support color\n");
+        error_window("Your terminal does not support color\n");
         exit(1);
     }
     start_color();
@@ -21,7 +25,11 @@ void setup_colors()
 
     init_color(COLOR_BG, (4 * 1000) / 255, (37 * 1000) / 255, (46 * 1000) / 255);
     init_color(COLOR_FG, (61 * 1000) / 255, (94 * 1000) / 255, (103 * 1000) / 255);
-    init_color(COLOR_FG_ACTIVE, (25 * 1000) / 255, (255 * 1000) / 255, (255 * 1000) / 255);
+    init_color(COLOR_CUSTOM_SEARCH, (0 * 1000) / 255, (255 * 1000) / 255, (255 * 1000) / 255);
+    init_color(COLOR_CUSTOM_LIBRARY, (226 * 1000) / 255, (140 * 1000) / 255, (236 * 1000) / 255);
+    init_color(COLOR_CUSTOM_PLAYLIST, (255 * 1000) / 255, (121 * 1000) / 255, (198 * 1000) / 255);
+    init_color(COLOR_CUSTOM_MAIN, (0 * 1000) / 255, (255 * 1000) / 255, (255 * 1000) / 255);
+    init_color(COLOR_CUSTOM_PROGRESS, (61 * 1000) / 255, (255 * 1000) / 255, (255 * 1000) / 255);
 
     init_pair(1, COLOR_FG, COLOR_BG); // search_bar
     init_pair(2, COLOR_FG, COLOR_BG); // help_bar
@@ -29,6 +37,14 @@ void setup_colors()
     init_pair(4, COLOR_FG, COLOR_BG); // playlist window
     init_pair(5, COLOR_FG, COLOR_BG); // main window
     init_pair(6, COLOR_FG, COLOR_BG); // progress bar
+
+    // Active color pairs
+    init_pair(15, COLOR_CUSTOM_SEARCH, COLOR_BG); // search_bar active
+    init_pair(16, COLOR_FG, COLOR_BG); // help_bar active
+    init_pair(17, COLOR_CUSTOM_LIBRARY, COLOR_BG); // library window active
+    init_pair(18, COLOR_CUSTOM_PLAYLIST, COLOR_BG); // playlist window active
+    init_pair(19, COLOR_CUSTOM_MAIN, COLOR_BG); // main window active
+    init_pair(20, COLOR_CUSTOM_PROGRESS, COLOR_BG); // progress bar active
 }
 
 void calculate_layout(int screen_height, int screen_width, WindowLayout layouts[6])
@@ -133,4 +149,16 @@ void render_library(WINDOW *library_win, const char **items, int count)
         mvwprintw(library_win, i + 1, 2, "%s", items[i]);
     }
     wrefresh(library_win);
+}
+
+void render_all_windows(WINDOW *search_bar, WINDOW *help_bar, WINDOW *library_win,
+                        WINDOW *playlist_win, WINDOW *main_win, WINDOW *progress_bar)
+{
+    refresh();
+    wrefresh(search_bar);
+    wrefresh(help_bar);
+    wrefresh(library_win);
+    wrefresh(playlist_win);
+    wrefresh(main_win);
+    wrefresh(progress_bar);
 }

@@ -20,5 +20,8 @@ void load_env(const char *filename);
 char *generate_random_string(int length);
 void generate_code_challenge(const char *code_verifier, char *code_challenge, int max_len);
 void wait_for_code_and_request_token(const char *code_verifier);
+void error_window(const char *message);
+int copy_to_clipboard(const char *text);
+
 
 #endif

@@ -50,7 +50,7 @@ int parse_token_response(const char *json_response, struct TokenResponse *token_
     // Extract access_token
     if (!extract_json_string(json_response, "access_token", token_data->access_token, sizeof(token_data->access_token)))
     {
-        fprintf(stderr, "Failed to parse access_token\n");
+        error_window("Failed to parse access_token\n");
         return -1;
     }
 
@@ -87,7 +87,7 @@ int request_access_token(const char *code, const char *code_verifier)
     CURL *curl = curl_easy_init();
     if (!curl)
     {
-        fprintf(stderr, "Failed to init curl\n");
+        error_window("Failed to init curl\n");
         return 1;
     }
 
@@ -115,7 +115,7 @@ int request_access_token(const char *code, const char *code_verifier)
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK)
     {
-        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        error_window("curl_easy_perform() failed: %s\n");
         free(response.ptr);
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
@@ -148,7 +148,7 @@ int request_access_token(const char *code, const char *code_verifier)
     }
     else
     {
-        fprintf(stderr, "Failed to parse token response\n");
+        error_window("Failed to parse token response\n");
         free(response.ptr);
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
@@ -164,27 +164,40 @@ int request_access_token(const char *code, const char *code_verifier)
 /**
  * @brief Wait for the authorization code from the redirect.
  *
- * This function sets up a simple HTTP server to listen for the redirect
- * containing the authorization code. It extracts the code from the request
- * and calls request_access_token to exchange it for an access token.
+ * This function checks for the user token, if it has expired, it will
+ * refresh the token. If the token is not set, it will request user authorization.
+ * And will update the environment variables with the new access token.
  *
  */
-void check_and_refresh_token() {
+void check_and_refresh_token()
+{
     const char *access_token = getenv("ACCESS_TOKEN");
+    const char *refresh_token = getenv("REFRESH_TOKEN");
     const char *expires_in_str = getenv("TOKEN_EXPIRES_IN");
-    if (!access_token || !expires_in_str) {
-        fprintf(stderr, "Access token or expiration time not set.\n");
-        return;
-    }
-    int expires_in = atoi(expires_in_str);
-    if (expires_in <= 0) {
-        fprintf(stderr, "Access token has expired or is invalid.\n");
-        if (refresh_access_token() != 0) {
-            fprintf(stderr, "Failed to refresh access token.\n");
-            exit(EXIT_FAILURE);
+    int expires_in = expires_in_str ? atoi(expires_in_str) : 0;
+    if (access_token && access_token[0] != '\0' &&
+        refresh_token && refresh_token[0] != '\0' &&
+        expires_in > 0)
+    {
+        // Check if the token is expired
+        if (expires_in <= 60) // If expires in less than 60 seconds, refresh it
+        {
+            printf("Access token is about to expire, refreshing...\n");
+            if (refresh_access_token() != 0)
+            {
+                error_window("Failed to refresh access token\n");
+                exit(EXIT_FAILURE);
+            }
+            else
+            {
+                printf("Access token refreshed successfully.\n");
+            }
         }
-    } else {
-        printf("Access token is still valid for %d seconds.\n", expires_in);
+    }
+    else
+    {
+        // If not set, request user authorization
+        connect_user_auth();
     }
 }
 
@@ -204,14 +217,14 @@ int refresh_access_token()
 
     if (!client_id || !refresh_token)
     {
-        fprintf(stderr, "Missing CLIENT_ID or REFRESH_TOKEN\n");
+        error_window("Missing CLIENT_ID or REFRESH_TOKEN\n");
         return 1;
     }
 
     CURL *curl = curl_easy_init();
     if (!curl)
     {
-        fprintf(stderr, "Failed to init curl\n");
+        error_window("Failed to init curl\n");
         return 1;
     }
 
@@ -237,7 +250,7 @@ int refresh_access_token()
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK)
     {
-        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        error_window("curl_easy_perform() failed: %s\n");
         free(response.ptr);
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
@@ -259,7 +272,7 @@ int refresh_access_token()
     }
     else
     {
-        fprintf(stderr, "Failed to parse refresh token response\n");
+        error_window("Failed to parse refresh token response\n");
         free(response.ptr);
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
@@ -287,7 +300,6 @@ char request_user_auth()
     const char *redirect_uri = getenv("REDIRECT_URI");
     // printf("Redirect URI: %s\n", redirect_uri);
     const char *scope = getenv("SCOPE");
-    
 
     char *code_verifier = generate_random_string(64);
 
@@ -337,7 +349,7 @@ void connect_user_auth()
     }
     else
     {
-        fprintf(stderr, "Failed to obtain access token and refresh token.\n");
+        error_window("Failed to obtain access token and refresh token.\n");
         exit(EXIT_FAILURE);
     }
     // Print the tokens for debugging

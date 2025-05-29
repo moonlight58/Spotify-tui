@@ -17,8 +17,8 @@ const char *library_items[] = {
 
 int main()
 {
-    load_env(".env");
-    connect_user_auth();
+    // load_env(".env");
+    // connect_user_auth();
 
     initscr();
     keypad(stdscr, TRUE); // Enable function keys and arrow keys
@@ -41,6 +41,8 @@ int main()
     WINDOW *main_win = create_window_with_layout(layouts[3], 5, "Welcome!");
     WINDOW *progress_bar = create_window_with_layout(layouts[4], 6, "Progress Bar");
 
+    init_windows(search_bar, help_bar, library_win, playlist_win, main_win, progress_bar);
+
     // Affiche le texte d'aide dans la help_bar
     mvwprintw(help_bar, 1, 1, "Type ?");
 
@@ -60,8 +62,8 @@ int main()
     render_library(library_win, library_items, library_count);
 
     // Now, get playlists after authentication and environment setup
-    const char *access_token = getenv("ACCESS_TOKEN");
-    char *playlists_json = get_user_playlists(access_token);
+    // const char *access_token = getenv("ACCESS_TOKEN");
+    // char *playlists_json = get_user_playlists(access_token);
     // TODO: Parse playlists_json and render in playlist_win
 
     handle_events(&search_bar, &help_bar, &library_win, &playlist_win, &main_win, &progress_bar);

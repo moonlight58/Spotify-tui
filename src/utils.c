@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <ncurses.h>
 
 #include "utils.h"
 #include "oauth.h"
@@ -27,6 +28,75 @@ void init_string(struct string *s)
     if (s->ptr)
         s->ptr[0] = '\0';
 };
+
+/**
+ * @brief Copy text to system clipboard
+ *
+ * @param text The text to copy to clipboard
+ * @return 1 on success, 0 on failure
+ */
+int copy_to_clipboard(const char *text)
+{
+    FILE *pipe;
+
+    // Try xclip first
+    pipe = popen("xclip -selection clipboard 2>/dev/null", "w");
+    if (pipe)
+    {
+        fprintf(pipe, "%s", text);
+        int result = pclose(pipe);
+        if (result == 0)
+            return 1; // Success
+    }
+
+    // Fallback to xsel
+    pipe = popen("xsel --clipboard --input 2>/dev/null", "w");
+    if (pipe)
+    {
+        fprintf(pipe, "%s", text);
+        int result = pclose(pipe);
+        if (result == 0)
+            return 1; // Success
+    }
+
+    return 0; // Failed
+}
+
+/**
+ * @brief Display an error message in a window.
+ *
+ * This function displays an error red message in a ncurses window.
+ * Avoiding to break the UI and allowing the user to continue
+ * using the application.
+ *
+ * @param message The error message to display.
+ */
+void error_window(const char *message)
+{
+    WINDOW *error_win = newwin(4, 60, 10, 10);        
+    box(error_win, 0, 0);                              
+    wattron(error_win, COLOR_PAIR(2));                 
+    mvwprintw(error_win, 1, 1, "Error: %s", message); 
+
+    int clipboard_success = copy_to_clipboard(message);
+
+    if (clipboard_success)
+    {
+        mvwprintw(error_win, 2, 1, "Error copied to clipboard.");
+        mvwprintw(error_win, 3, 1, "Press any key to continue...");
+    }
+    else
+    {
+        mvwprintw(error_win, 2, 1, "Failed to copy to clipboard.");
+        mvwprintw(error_win, 3, 1, "Press any key to continue...");
+    }
+
+    wattroff(error_win, COLOR_PAIR(2)); 
+    wrefresh(error_win);
+    getch();
+
+    delwin(error_win); 
+}
 
 /**
  * @brief Callback function for libcurl to write received data into a dynamic buffer.

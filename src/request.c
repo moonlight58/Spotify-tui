@@ -8,26 +8,28 @@
 
 /**
  * @brief Callback function to handle the response from the server.
- * 
+ *
  * This function is called by libcurl when data is received. It appends
  * the received data to a dynamically allocated string.
- * 
+ *
  * @param acces_token Pointer to the acces_token stored in the environment.
- * @return Parsed JSON response with all the data of the current profile such as the : 
- *      country, 
- *      username, 
- *      email, 
- *      explicit_content filters, 
- *      followers, 
- *      id, 
+ * @return Parsed JSON response with all the data of the current profile such as the :
+ *      country,
+ *      username,
+ *      email,
+ *      explicit_content filters,
+ *      followers,
+ *      id,
  *      api url to the account.
  */
-char *get_user_profile(const char *access_token) {
-    check_and_refresh_token(); 
+char *get_user_profile(const char *access_token)
+{
+    check_and_refresh_token();
 
     CURL *curl = curl_easy_init();
-    if (!curl) {
-        fprintf(stderr, "curl init failed\n");
+    if (!curl)
+    {
+        error_window("curl init failed\n");
         return "";
     }
 
@@ -47,9 +49,12 @@ char *get_user_profile(const char *access_token) {
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
 
     CURLcode res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
-        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-    } else {
+    if (res != CURLE_OK)
+    {
+        error_window("curl_easy_perform() failed: %s\n");
+    }
+    else
+    {
         parse_JSON(response.ptr);
         return response.ptr;
     }
@@ -59,12 +64,14 @@ char *get_user_profile(const char *access_token) {
     curl_easy_cleanup(curl);
 }
 
-char *get_user_playlists(const char *access_token) {
+char *get_user_playlists(const char *access_token)
+{
     check_and_refresh_token();
 
     CURL *curl = curl_easy_init();
-    if (!curl) {
-        fprintf(stderr, "curl init failed\n");
+    if (!curl)
+    {
+        error_window("curl init failed\n");
         return "";
     }
 
@@ -84,9 +91,12 @@ char *get_user_playlists(const char *access_token) {
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
 
     CURLcode res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
-        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-    } else {
+    if (res != CURLE_OK)
+    {
+        error_window("curl_easy_perform() failed: %s\n");
+    }
+    else
+    {
         // parse_JSON(response.ptr);
         return response.ptr;
     }
@@ -98,19 +108,21 @@ char *get_user_playlists(const char *access_token) {
 
 /**
  * @brief Get items from a specific playlist.
- * 
+ *
  * This function retrieves the items from a specified playlist using the Spotify API.
- * 
+ *
  * @param access_token The access token for authorization.
  * @param playlist_id The ID of the playlist to retrieve items from.
  * @return A JSON string containing the items in the playlist.
  */
-char *get_user_playlist_items(const char *access_token, const char *playlist_id) {
+char *get_user_playlist_items(const char *access_token, const char *playlist_id)
+{
     check_and_refresh_token();
 
     CURL *curl = curl_easy_init();
-    if (!curl) {
-        fprintf(stderr, "curl init failed\n");
+    if (!curl)
+    {
+        error_window("curl init failed\n");
         return "";
     }
     struct string response;
@@ -130,9 +142,12 @@ char *get_user_playlist_items(const char *access_token, const char *playlist_id)
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
 
     CURLcode res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
-        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-    } else {
+    if (res != CURLE_OK)
+    {
+        error_window("curl_easy_perform() failed: %s\n");
+    }
+    else
+    {
         parse_JSON(response.ptr);
         return response.ptr;
     }
@@ -141,12 +156,14 @@ char *get_user_playlist_items(const char *access_token, const char *playlist_id)
     curl_easy_cleanup(curl);
 }
 
-char *get_user_liked_songs(const char *access_token) {
+char *get_user_liked_songs(const char *access_token)
+{
     check_and_refresh_token();
 
     CURL *curl = curl_easy_init();
-    if (!curl) {
-        fprintf(stderr, "curl init failed\n");
+    if (!curl)
+    {
+        error_window("curl init failed\n");
         return "";
     }
 
@@ -164,11 +181,14 @@ char *get_user_liked_songs(const char *access_token) {
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-    
+
     CURLcode res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
-        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-    } else {
+    if (res != CURLE_OK)
+    {
+        error_window("curl_easy_perform() failed: %s\n");
+    }
+    else
+    {
         parse_JSON(response.ptr);
         return response.ptr;
     }
