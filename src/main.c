@@ -5,6 +5,8 @@
 #include "event.h"
 #include "request.h"
 #include "oauth.h"
+#include "tui-window.h"
+
 
 const char *library_items[] = {
     "Made For You",

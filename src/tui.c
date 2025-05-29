@@ -1,8 +1,12 @@
 #include "tui.h"
+#include "utils.h"
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ncurses.h>
+
 
 #define COLOR_BG 8
 #define COLOR_FG 9

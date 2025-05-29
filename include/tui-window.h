@@ -21,5 +21,6 @@ TuiWindow* get_windows(void);
 TuiWindow* get_window(int index);
 void render_windows_with_focus(int focused_index);
 int find_window_by_grid(int grid_x, int grid_y);
+void init_windows(WINDOW *search, WINDOW *help, WINDOW *library, WINDOW *playlist, WINDOW *main, WINDOW *progress);
 
 #endif /* TUI_WINDOW_H */
