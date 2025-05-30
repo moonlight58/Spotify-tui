@@ -6,16 +6,7 @@
 #include "request.h"
 #include "oauth.h"
 #include "tui-window.h"
-
-
-const char *library_items[] = {
-    "Made For You",
-    "Recently Played",
-    "Liked Songs",
-    "Albums",
-    "Artists",
-    "Podcasts"
-};
+#include "library.h"
 
 int main()
 {
@@ -60,7 +51,6 @@ int main()
     render_welcome(main_win);
 
     // Render the library items in the library window
-    int library_count = sizeof(library_items) / sizeof(library_items[0]);
     render_library(library_win, library_items, library_count);
 
     // Now, get playlists after authentication and environment setup

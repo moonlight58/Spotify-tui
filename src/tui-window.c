@@ -30,7 +30,6 @@ void render_windows_with_focus(int focused_index)
         box(win->window, 0, 0);
         if (win->title)
         {
-            // Clear the title area before printing (assume max 20 chars)
             int max_x = getmaxx(win->window);
             int title_len = strlen(win->title);
             mvwprintw(win->window, 0, 1, "%-*s", title_len, win->title); // overwrite only title area
