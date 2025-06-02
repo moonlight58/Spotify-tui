@@ -58,6 +58,8 @@ int main()
     // char *playlists_json = get_user_playlists(access_token);
     // TODO: Parse playlists_json and render in playlist_win
 
+    render_windows_with_focus(4);
+
     handle_events(&search_bar, &help_bar, &library_win, &playlist_win, &main_win, &progress_bar);
 
     delwin(search_bar);

@@ -41,7 +41,7 @@ void setup_colors()
     init_color(COLOR_CUSTOM_MAIN,            (0 * 1000) / 255,   (255 * 1000) / 255, (255 * 1000) / 255);
     init_color(COLOR_CUSTOM_PROGRESS,        (61 * 1000) / 255,  (255 * 1000) / 255, (255 * 1000) / 255);
 
-    init_color(COLOR_CUSTOM_ACTIVE,          (200 * 1000) / 255, (224 * 1000) / 255, (237 * 1000) / 255);
+    init_color(COLOR_CUSTOM_ACTIVE,          (183 * 1000) / 255, (211 * 1000) / 255, (230 * 1000) / 255);
     init_color(COLOR_CUSTOM_ACTIVE_SEARCH,   (200 * 1000) / 255, (224 * 1000) / 255, (237 * 1000) / 255);
     init_color(COLOR_CUSTOM_ACTIVE_LIBRARY,  (226 * 1000) / 255, (140 * 1000) / 255, (236 * 1000) / 255);
     init_color(COLOR_CUSTOM_ACTIVE_PLAYLIST, (255 * 1000) / 255, (121 * 1000) / 255, (198 * 1000) / 255);
@@ -103,6 +103,7 @@ WINDOW *create_window_with_layout(WindowLayout layout, int color_pair, const cha
 
 void render_welcome(WINDOW *main_win)
 {
+    wattron(main_win, COLOR_PAIR(202)); // Use custom main color
     int max_y, max_x;
     getmaxyx(main_win, max_y, max_x);
 
@@ -155,7 +156,7 @@ void render_welcome(WINDOW *main_win)
             // If no space found, force wrap at usable_width
             char saved = ptr[wrap];
             ptr[wrap] = '\0';
-            mvwprintw(main_win, row++, 1, "%s", ptr);
+            mvwprintw(main_win, row++, 2, "%s", ptr);
             ptr[wrap] = saved;
             ptr += wrap;
             // Skip leading spaces
@@ -165,12 +166,13 @@ void render_welcome(WINDOW *main_win)
         }
         if (row < max_y - 1)
         {
-            mvwprintw(main_win, row++, 1, "%s", ptr);
+            mvwprintw(main_win, row++, 2, "%s", ptr);
         }
         if (row >= max_y - 1)
             break;
     }
     fclose(file);
+    wattroff(main_win, COLOR_PAIR(202)); // Reset color
     wrefresh(main_win);
 }
 

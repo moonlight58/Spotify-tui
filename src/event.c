@@ -96,8 +96,9 @@ void handle_normal_mode(AppState *state, int ch, WINDOW **search_bar, WINDOW **h
             break;
         case 's':
             state->mode = MODE_SEARCH;
+            state->focused_window = 0;
+            
             state->search_input[0] = '\0';
-            mvwprintw(get_window(0)->window, 1, 2, "Search: ");
             wrefresh(get_window(0)->window);
             break;
         case KEY_UP:
@@ -119,7 +120,7 @@ void handle_normal_mode(AppState *state, int ch, WINDOW **search_bar, WINDOW **h
                 case 0: // Search bar
                     state->mode = MODE_SEARCH;
                     state->search_input[0] = '\0';
-                    mvwprintw(get_window(0)->window, 1, 2, "Search: ");
+                    mvwprintw(get_window(0)->window, 1, 2, "Type your search...");
                     wrefresh(get_window(0)->window);
                     break;
                 case 2: // Library
@@ -180,7 +181,9 @@ void handle_search_mode(AppState *state, int ch)
         state->search_input[len] = ch;
         state->search_input[len + 1] = '\0';
     }
-    mvwprintw(get_window(0)->window, 1, 2, "Search: %-48s", state->search_input);
+    wattron(get_window(0)->window, COLOR_PAIR(201));
+    mvwprintw(get_window(0)->window, 1, 2, "%-48s", state->search_input);
+    wattroff(get_window(0)->window, COLOR_PAIR(201));
     wrefresh(get_window(0)->window);
 }
 
