@@ -7,77 +7,72 @@
 #include <string.h>
 #include <ctype.h>
 
-// Prototypes
-void do_search(const char *query);
-void do_library_action(int index);
-void render_library_with_selector(WINDOW *win, const char **items, int count, int selected);
+typedef enum
+{
+    MODE_NORMAL,
+    MODE_SEARCH,
+    MODE_LIBRARY,
+    MODE_PLAYLIST,
+    MODE_SEARCH_SONG,
+    MODE_SEARCH_ALBUM,
+    MODE_SEARCH_ARTIST,
+    MODE_SEARCH_PLAYLIST,
+} AppMode;
 
-static int focused_window = 4;
-static int selector_mode = 0; // 0: normal, 1: search input, 2: library select, 3: playlist select, etc.
-static int selector_index = 0; // For list selection (library, playlist)
-static char search_input[256] = {0}; // For search bar input
+typedef struct
+{
+    AppMode mode;
+    int focused_window;
+    int selector_mode;
+    int selector_index;
+    char search_input[256];
+} AppState;
 
+// --- Prototypes des handlers par mode ---
+void handle_normal_mode(AppState *state, int ch, WINDOW **search_bar, WINDOW **help_bar, WINDOW **library_win, WINDOW **playlist_win, WINDOW **main_win, WINDOW **progress_bar);
+void handle_search_mode(AppState *state, int ch);
+void handle_library_mode(AppState *state, int ch);
+
+// --- Boucle principale ---
 void handle_events(WINDOW **search_bar, WINDOW **help_bar,
                    WINDOW **library_win, WINDOW **playlist_win,
                    WINDOW **main_win, WINDOW **progress_bar)
 {
+    AppState state = {MODE_NORMAL, 4, 0, 0, ""};
     int ch;
+    while ((ch = getch()) != 'q')
+    {
+        switch (state.mode)
+        {
+            case MODE_NORMAL:
+                handle_normal_mode(&state, ch, search_bar, help_bar, library_win, playlist_win, main_win, progress_bar);
+                break;
+            case MODE_SEARCH:
+                handle_search_mode(&state, ch);
+                break;
+            case MODE_LIBRARY:
+                handle_library_mode(&state, ch);
+                break;
+            case MODE_PLAYLIST:
+                // handle_playlist_mode(&state, ch);
+                break;
+            // Ajoute d'autres modes ici si besoin
+            default:
+                break;
+        }
+    }
+}
+
+// --- Handler du mode normal ---
+void handle_normal_mode(AppState *state, int ch, WINDOW **search_bar, WINDOW **help_bar, WINDOW **library_win, WINDOW **playlist_win, WINDOW **main_win, WINDOW **progress_bar)
+{
+    TuiWindow *current = get_window(state->focused_window);
+    int nx = current->grid_x, ny = current->grid_y;
     int height, width;
     WindowLayout layouts[6];
 
-    while ((ch = getch()) != 'q')
+    switch (ch)
     {
-        TuiWindow *current = get_window(focused_window);
-        int nx = current->grid_x, ny = current->grid_y;
-
-        // --- Mode sélection : Search bar ---
-        if (selector_mode == 1) {
-            if (ch == 27) { // ESC
-                selector_mode = 0;
-                mvwprintw(get_window(0)->window, 1, 2, "%*s", 50, " ");
-                wrefresh(get_window(0)->window);
-            } else if (ch == '\n' || ch == KEY_ENTER) {
-                do_search(search_input);
-                selector_mode = 0;
-            } else if (ch == KEY_BACKSPACE || ch == 127) {
-                int len = strlen(search_input);
-                if (len > 0) search_input[len-1] = '\0';
-            } else if (isprint(ch) && strlen(search_input) < sizeof(search_input)-1) {
-                int len = strlen(search_input);
-                search_input[len] = ch;
-                search_input[len+1] = '\0';
-            }
-            mvwprintw(get_window(0)->window, 1, 2, "Search: %-48s", search_input);
-            wrefresh(get_window(0)->window);
-            continue;
-        }
-
-        // --- Mode sélection : Library ---
-        if (selector_mode == 2) {
-            if (ch == 27) { // ESC
-                selector_mode = 0;
-            } else if (ch == KEY_UP) {
-                if (selector_index > 0) selector_index--;
-            } else if (ch == KEY_DOWN) {
-                if (selector_index < library_count-1) selector_index++;
-            } else if (ch == '\n' || ch == KEY_ENTER) {
-                do_library_action(selector_index);
-                selector_mode = 0;
-            }
-            render_library_with_selector(get_window(2)->window, library_items, library_count, selector_index);
-            render_windows_with_focus(focused_window);
-            continue;
-        }
-
-        // --- Mode sélection : Playlist (à compléter si besoin) ---
-        if (selector_mode == 3) {
-            // Ajoute ici la gestion de la sélection de playlist si besoin
-            continue;
-        }
-
-        // --- Navigation entre fenêtres UNIQUEMENT si pas en mode sélection ---
-        switch (ch)
-        {
         case KEY_RESIZE:
             getmaxyx(stdscr, height, width);
             calculate_layout(height, width, layouts);
@@ -100,8 +95,10 @@ void handle_events(WINDOW **search_bar, WINDOW **help_bar,
             wrefresh(*help_bar);
             break;
         case 's':
-            mvwprintw(*search_bar, 1, 1, "Search: ");
-            wrefresh(*search_bar);
+            state->mode = MODE_SEARCH;
+            state->search_input[0] = '\0';
+            mvwprintw(get_window(0)->window, 1, 2, "Search: ");
+            wrefresh(get_window(0)->window);
             break;
         case KEY_UP:
             ny--;
@@ -115,70 +112,100 @@ void handle_events(WINDOW **search_bar, WINDOW **help_bar,
         case KEY_RIGHT:
             nx++;
             break;
-        default:
-            break;
-        }
-
-        int next = find_window_by_grid(nx, ny);
-        while (next != -1 && !get_window(next)->is_focusable) {
-            if (ch == KEY_UP) ny--;
-            else if (ch == KEY_DOWN) ny++;
-            else if (ch == KEY_LEFT) nx--;
-            else if (ch == KEY_RIGHT) nx++;
-            next = find_window_by_grid(nx, ny);
-        }
-        if (next != -1)
-            focused_window = next;
-
-        // --- Entrée dans un mode sélection ---
-        if (ch == '\n' || ch == KEY_ENTER) {
-            switch (focused_window) {
+        case '\n':
+        case KEY_ENTER:
+            switch (state->focused_window)
+            {
                 case 0: // Search bar
-                    selector_mode = 1;
-                    search_input[0] = '\0';
+                    state->mode = MODE_SEARCH;
+                    state->search_input[0] = '\0';
                     mvwprintw(get_window(0)->window, 1, 2, "Search: ");
                     wrefresh(get_window(0)->window);
                     break;
                 case 2: // Library
-                    selector_mode = 2;
-                    selector_index = 0;
-                    render_library_with_selector(get_window(2)->window, library_items, library_count, selector_index);
+                    state->mode = MODE_LIBRARY;
+                    state->selector_index = 0;
+                    render_windows_with_focus(state->focused_window);
+                    render_library_with_selector(get_window(2)->window, library_items, library_count, state->selector_index);
                     break;
-                case 3: // Playlist
-                    selector_mode = 3;
-                    selector_index = 0;
-                    // Ajoute ici le rendu de la playlist si besoin
-                    break;
+                // Ajoute d'autres fenêtres si besoin
             }
-            render_windows_with_focus(focused_window);
-            continue;
-        }
-
-        render_windows_with_focus(focused_window);
+            return;
+        default:
+            break;
     }
-}
 
-void render_library_with_selector(WINDOW *win, const char **items, int count, int selected) {
-    werase(win);
-    box(win, 0, 0);
-    mvwprintw(win, 0, 1, "Library");
-    for (int i = 0; i < count; ++i) {
-        if (i == selected)
-            wattron(win, A_REVERSE);
-        mvwprintw(win, i+1, 2, "%s", items[i]);
-        if (i == selected)
-            wattroff(win, A_REVERSE);
+    int next = find_window_by_grid(nx, ny);
+    while (next != -1 && !get_window(next)->is_focusable)
+    {
+        if (ch == KEY_UP)
+            ny--;
+        else if (ch == KEY_DOWN)
+            ny++;
+        else if (ch == KEY_LEFT)
+            nx--;
+        else if (ch == KEY_RIGHT)
+            nx++;
+        next = find_window_by_grid(nx, ny);
     }
-    wrefresh(win);
+    if (next != -1)
+        state->focused_window = next;
+
+    render_windows_with_focus(state->focused_window);
 }
 
-void do_search(const char *query) {
-    // TODO: Call Spotify API with query
-    mvprintw(0, 0, "Searching for: %s", query);
-    refresh();
+// --- Handler du mode search ---
+void handle_search_mode(AppState *state, int ch)
+{
+    if (ch == 27) // ESC
+    {
+        state->mode = MODE_NORMAL;
+        mvwprintw(get_window(0)->window, 1, 2, "%*s", 50, " ");
+        wrefresh(get_window(0)->window);
+    }
+    else if (ch == '\n' || ch == KEY_ENTER)
+    {
+        do_search(state->search_input);
+        state->mode = MODE_NORMAL;
+    }
+    else if (ch == KEY_BACKSPACE || ch == 127)
+    {
+        int len = strlen(state->search_input);
+        if (len > 0)
+            state->search_input[len - 1] = '\0';
+    }
+    else if (isprint(ch) && strlen(state->search_input) < sizeof(state->search_input) - 1)
+    {
+        int len = strlen(state->search_input);
+        state->search_input[len] = ch;
+        state->search_input[len + 1] = '\0';
+    }
+    mvwprintw(get_window(0)->window, 1, 2, "Search: %-48s", state->search_input);
+    wrefresh(get_window(0)->window);
 }
 
-void do_library_action(int index) {
-    // TODO: Handle library item selection
-    // mvprintw(1, 0, "Selected library item: %d", index);
+// --- Handler du mode library ---
+void handle_library_mode(AppState *state, int ch)
+{
+    if (ch == 27) // ESC
+    {
+        state->mode = MODE_NORMAL;
+    }
+    else if (ch == KEY_UP)
+    {
+        if (state->selector_index > 0)
+            state->selector_index--;
+    }
+    else if (ch == KEY_DOWN)
+    {
+        if (state->selector_index < library_count - 1)
+            state->selector_index++;
+    }
+    else if (ch == '\n' || ch == KEY_ENTER)
+    {
+        do_library_action(state->selector_index);
+        state->mode = MODE_NORMAL;
+    }
+    render_windows_with_focus(state->focused_window);
+    render_library_with_selector(get_window(2)->window, library_items, library_count, state->selector_index);
 }

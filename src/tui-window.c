@@ -12,12 +12,12 @@ TuiWindow *get_window(int index) { return &windows[index]; }
 void init_windows(WINDOW *search, WINDOW *help, WINDOW *library, WINDOW *playlist, WINDOW *main, WINDOW *progress)
 {
     window_count = 6;
-    windows[0] = (TuiWindow){search, 0, 0, 0, 0, 0, 0, true, 15, 1, "Search"};
-    windows[1] = (TuiWindow){help, 0, 0, 0, 0, -1, -1, false, 16, 2, "Help"};
-    windows[2] = (TuiWindow){library, 0, 0, 0, 0, 0, 1, true, 17, 3, "Library"};
-    windows[3] = (TuiWindow){playlist, 0, 0, 0, 0, 0, 2, true, 18, 4, "Playlists"};
-    windows[4] = (TuiWindow){main, 0, 0, 0, 0, 1, 1, true, 19, 5, "Welcome!"};
-    windows[5] = (TuiWindow){progress, 0, 0, 0, 0, -1, -1, false, 20, 6, "Progress Bar"};
+    windows[0] = (TuiWindow){search,   0, 0, 0, 0, 0, 0,   true,  101, 1, "Search"};
+    windows[1] = (TuiWindow){help,     0, 0, 0, 0, -1, -1, false, 102, 2, "Help"};
+    windows[2] = (TuiWindow){library,  0, 0, 0, 0, 0, 1,   true,  103, 3, "Library"};
+    windows[3] = (TuiWindow){playlist, 0, 0, 0, 0, 0, 2,   true,  104, 4, "Playlists"};
+    windows[4] = (TuiWindow){main,     0, 0, 0, 0, 1, 1,   true,  105, 5, "Welcome!"};
+    windows[5] = (TuiWindow){progress, 0, 0, 0, 0, -1, -1, false, 106, 6, "Progress Bar"};
 }
 
 void render_windows_with_focus(int focused_index)
